@@ -1,0 +1,8 @@
+let
+    Origen = Json.Document(Web.Contents("https://dev.caba360.com.co/api/CumplidoAplicacion/getAllCumplidosAplicacion", [Headers=[Authorization="Bearer frLAcWGEwy6SdqiqUTfFeVShBW2cQ0FMNI74cvJXf4bfc06b"]])),
+    #"Convertida en tabla" = Table.FromList(Origen, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+    #"Se expandió Column1" = Table.ExpandRecordColumn(#"Convertida en tabla", "Column1", {"codigo","fecha","finca","finca_id","distrito","distrito_id","zona","zona_id","codigo_lote","codigo_lote_id","lote","lote_id","contratista","contratista_id","labor","labor_id","cantidad_total","Cantidad_Hect","Cantidad_Bultos","precio_total"}),
+    #"Tipo cambiado" = Table.TransformColumnTypes(#"Se expandió Column1",{{"codigo", type text},{"fecha", type date}, {"finca", type text}, {"finca_id",  Int64.Type}, {"distrito", type text}, {"distrito_id", Int64.Type}, {"zona", type text}, {"zona_id", Int64.Type}, {"codigo_lote", type text}, {"codigo_lote_id", Int64.Type}, {"lote", type text}, {"lote_id", Int64.Type}, {"contratista", type text}, {"contratista_id", Int64.Type}, {"labor", type text}, {"labor_id", Int64.Type}, {"cantidad_total", Int64.Type}, {"Cantidad_Hect", Int64.Type}, {"Cantidad_Bultos",Int64.Type}, {"precio_total", Int64.Type} })
+in
+    #"Tipo cambiado"
+
