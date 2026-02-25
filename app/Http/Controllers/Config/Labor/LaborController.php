@@ -109,7 +109,7 @@ class LaborController extends Controller
                 'CumplidoAplicacion' => $labor->CumpApliV == 1 ? true : false,
                 'CumplidoOrdenServicio' => $labor->CumpOrdV == 1 ? true : false,
                 'CumplidoLaboresCampo' => false,
-                'Hect' => $labor->Hect == 1 ? true : false,
+                'Hect' => $labor->Hect,
                 'status' => (int) $labor->status,
 
 
@@ -146,7 +146,8 @@ class LaborController extends Controller
         $labor->CumpMaqV = $request->CumplidoMaquinaria;
         $labor->CumpApliV = $request->CumplidoAplicacion;
         $labor->CumpOrdV = $request->CumplidoOrdenServicio;
-        $labor->Hect = $request->boolean('Hect');
+        $labor->Hect = $request->Hect ? 1 : 0; // false se convierte en 0 y true se convierte en 1
+
         $labor->status = ((int) $status) === 1 ? 1 : 0;
 
         // Save the updated Labor model to the database

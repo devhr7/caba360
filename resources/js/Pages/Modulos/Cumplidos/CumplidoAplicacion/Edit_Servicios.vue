@@ -39,13 +39,18 @@ async function submitUpdate() {
                 "CumplidoAplicacionProducto.storeServicios",
                 formLabor.DetalleCump
             ),
-            formLabor
+            formLabor.data()
         )
         .then(function (response) {
-                location.reload();
-                visible.value = false;
-                  
-
+            location.reload();
+            visible.value = false;
+        })
+        .catch(() => {
+            Swal.fire({
+                title: "Error",
+                text: "No se pudo actualizar el servicio.",
+                icon: "error",
+            });
         });
     //.catch((e) => console.log(e));
 }
@@ -57,74 +62,43 @@ async function submitUpdate() {
             <template #title>Servicios</template>
 
             <template #content>
-                
-                <DataTable
-                    v-model:filters="filters"
-                    :value="datatable"
-                    :size="{ label: 'Small', value: 'small' }"
+
+                <DataTable v-model:filters="filters" :value="datatable" :size="{ label: 'Small', value: 'small' }"
                     :globalFilterFields="[
                         'labor',
-                    ]"
-                    tableStyle="min-width: 50rem"
-                    class="bg-teal-50"
-                >
+                    ]" tableStyle="min-width: 50rem" class="bg-teal-50">
                     <Column field="Labor" header="labor"></Column>
 
-                    <Column
-                        field="cantidad_Total"
-                        header="cantidad_Total"
-                    ></Column>
+                    <Column field="cantidad_Total" header="cantidad_Total"></Column>
                     <Column field="PrecioTotalFormat" header="Total"></Column>
                     <Column :exportable="false" style="min-width: 12rem">
                         <!-- Boton Editar -->
                         <template #body="slotProps">
-                            <Button
-                                icon="pi pi-pencil"
-                                outlined
-                                rounded
-                                class="mr-2"
-                                @click="AbrirModal(slotProps.data)"
-                            />
+                            <Button icon="pi pi-pencil" outlined rounded class="mr-2"
+                                @click="AbrirModal(slotProps.data)" />
                         </template>
                     </Column>
                 </DataTable>
             </template>
         </Card>
 
-        <Dialog
-            v-model:visible="visible"
-            modal
-            header="Edit Profile"
-            :style="{ width: '25rem' }"
-        >
+        <Dialog v-model:visible="visible" modal header="Edit Profile" :style="{ width: '25rem' }">
             <template #header>
                 <div class="inline-flex items-center justify-center gap-2">
-                    <span class="font-bold whitespace-nowrap"
-                        >Actualizar Aplicacion/Labor</span
-                    >
+                    <span class="font-bold whitespace-nowrap">Actualizar Aplicacion/Labor</span>
                 </div>
             </template>
 
             <div class="flex items-center gap-4 mb-4">
                 <form @submit.prevent="submitUpdate">
                     <label for="TipoAplicacion" class="font-semibold w-24">
-                        Tipo Aplicacion</label
-                    >
+                        Tipo Aplicacion</label>
                     <br />
 
-                    <Select
-                        v-model="formLabor.labor"
-                        :options="OptionsLabor"
-                        filter
-                        optionLabel="label"
-                        placeholder="Seleccionar"
-                        class="w-full md:w-56"
-                    >
+                    <Select v-model="formLabor.labor" :options="OptionsLabor" filter optionLabel="label"
+                        placeholder="Seleccionar" class="w-full md:w-56">
                         <template #value="slotProps">
-                            <div
-                                v-if="slotProps.value"
-                                class="flex items-center"
-                            >
+                            <div v-if="slotProps.value" class="flex items-center">
                                 <div>
                                     {{ slotProps.value.label }}
                                 </div>
@@ -144,19 +118,8 @@ async function submitUpdate() {
                 </form>
             </div>
             <template #footer>
-                <Button
-                    label="Cancelar"
-                    text
-                    severity="secondary"
-                    @click="visible = false"
-                    autofocus
-                />
-                <Button
-                    label="Actualizar"
-                    severity="success"
-                    @click="submitUpdate()"
-                    autofocus
-                />
+                <Button label="Cancelar" text severity="secondary" @click="visible = false" autofocus />
+                <Button label="Actualizar" severity="success" @click="submitUpdate()" autofocus />
             </template>
         </Dialog>
     </div>

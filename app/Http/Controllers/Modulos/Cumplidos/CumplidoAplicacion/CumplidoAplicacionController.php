@@ -289,11 +289,8 @@ class CumplidoAplicacionController extends Controller
             $CumplidoAplicacionLabor = null;
             $optionGrupo_MateriaPrima =  Grupo_MateriaPrima::optionsGrupoMateriaPrima(null, [2, 3, 4, 5, 6, 7]);
             $optionMP = MateriaPrima::optionsMateriaPrima([2, 3, 4, 5, 6, 7]);
-
-
+            
             if ($CumplidoAplicacionLabor = CumplidoAplicacionProducto::where('CumplidoAplicacion_id', $CumplidoAplicacion->id)->whereNotNull('labor_id')->first()) {
-
-
 
                 if (in_array($CumplidoAplicacionLabor->labor_id, Labor::where('Hect', 1)->pluck('id')->toArray())) {
                     $optionGrupo_MateriaPrima =  Grupo_MateriaPrima::optionsGrupoMateriaPrima(null, [2, 3, 4, 5, 6, 7]);

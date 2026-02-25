@@ -62,7 +62,6 @@ class CumplidoAplicacionProductoController extends Controller
         $CumplidoAplicacionLabor->save();
 
         $this->ActualizarValorLabor($CumplidoAplicacion->id);
-
     }
 
 
@@ -70,11 +69,15 @@ class CumplidoAplicacionProductoController extends Controller
 
     public function storeServicios(Request $request, $slug)
     {
+        $validated = $request->validate([
+            'labor' => ['required', 'array'],
+            'labor.id' => ['required', 'integer', 'exists:labors,id'],
+        ]);
 
-        $cumplidoAplicacionProducto = CumplidoAplicacionProducto::find($slug);
-        $CumplidoAplicacion = CumplidoAplicacion::where('id', $cumplidoAplicacionProducto->CumplidoAplicacion_id)->first();
+        $cumplidoAplicacionProducto = CumplidoAplicacionProducto::findOrFail($slug);
+        $CumplidoAplicacion = CumplidoAplicacion::findOrFail($cumplidoAplicacionProducto->CumplidoAplicacion_id);
 
-        $cumplidoAplicacionProducto->labor_id = $request->labor['id'];
+        $cumplidoAplicacionProducto->labor_id = (int) $validated['labor']['id'];
 
         $cumplidoAplicacionProducto->save();
 
@@ -161,7 +164,7 @@ class CumplidoAplicacionProductoController extends Controller
          * *Aplicacion
          */
         if (in_array($CumplidoAplicacionDetalle->labor_id, Labor::where('Hect', 1)->pluck('id')->toArray())) { // Aplicacion
-                $cantidadTotal = doubleval($Hectareas); // Las Cantidades de la Aplicacion es igual a las Hectareas
+            $cantidadTotal = doubleval($Hectareas); // Las Cantidades de la Aplicacion es igual a las Hectareas
 
 
             //Fin Condicion
@@ -180,6 +183,5 @@ class CumplidoAplicacionProductoController extends Controller
         $CumplidoAplicacionDetalle->PrecioUnit = $PrecioUnit;
         $CumplidoAplicacionDetalle->PrecioTotal = $cantidadTotal * $PrecioUnit;
         $CumplidoAplicacionDetalle->save();
-
     }
 }
