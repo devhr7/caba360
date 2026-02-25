@@ -35,7 +35,7 @@ const form = useForm({
 
 //Crear
 function submitCrear() {
-    form.post(route("Labor.store"), form);
+    form.post(route("Labor.store"));
 }
 
 /**
@@ -76,7 +76,7 @@ const search = (event) => {
                 <a :href="item.url">
                     <span class="text-surface-700 dark:text-surface-0">{{
                         item.label
-                        }}</span>
+                    }}</span>
                 </a>
             </template>
         </Breadcrumb>

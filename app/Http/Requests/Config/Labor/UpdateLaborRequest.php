@@ -23,7 +23,7 @@ class UpdateLaborRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'status' => ['required', 'in:0,1'],
         ];
     }
 }

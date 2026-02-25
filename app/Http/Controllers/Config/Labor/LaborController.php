@@ -28,6 +28,7 @@ class LaborController extends Controller
                 'labor' => $data->labor,
                 'TipoCumplido' => $data->TipoCumplido_id ? $data->TipoCumplido->TipoCumplido : null,
                 'CostoHect' => $data->CostoHect,
+                'status' => (int) $data->status,
                 'slug' => $data->slug,
             ];
         });
@@ -72,6 +73,7 @@ class LaborController extends Controller
         $labor->CumpApliV = $request->CumplidoAplicacion;
         $labor->CumpOrdV = $request->CumplidoOrdenServicio;
         $labor->Hect = $request->boolean('Hect');
+        $labor->status = 1;
         //$labor->CumpLabV = $request->CumplidoLaboresCampo;
 
         // Save the Labor model to the database
@@ -108,6 +110,7 @@ class LaborController extends Controller
                 'CumplidoOrdenServicio' => $labor->CumpOrdV == 1 ? true : false,
                 'CumplidoLaboresCampo' => false,
                 'Hect' => $labor->Hect == 1 ? true : false,
+                'status' => (int) $labor->status,
 
 
                 'slug' => $labor->slug,
@@ -130,6 +133,11 @@ class LaborController extends Controller
         // Find the Labor instance by slug
         $labor = Labor::where('slug', $slug)->firstOrFail();
 
+        $status = $request->input('status', $labor->status);
+        if (is_array($status)) {
+            $status = $status['value'] ?? $labor->status;
+        }
+
         // Update values from the request to the Labor model
         $labor->labor = $request->labor;
         $labor->CostoHect = $request->costoHect;
@@ -139,6 +147,7 @@ class LaborController extends Controller
         $labor->CumpApliV = $request->CumplidoAplicacion;
         $labor->CumpOrdV = $request->CumplidoOrdenServicio;
         $labor->Hect = $request->boolean('Hect');
+        $labor->status = ((int) $status) === 1 ? 1 : 0;
 
         // Save the updated Labor model to the database
         $labor->save();

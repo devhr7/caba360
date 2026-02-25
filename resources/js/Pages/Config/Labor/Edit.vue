@@ -23,6 +23,10 @@ const props = defineProps({
 
 const getOptionTipoLabor = ref(props.options.OptionTipoLabor); // Datos del Distrito
 const getOptionTipoCumplido = ref(props.options.OptionTipoCumplido); // Datos del Distrito
+const getOptionStatus = ref([
+    { label: "Activo", value: 1 },
+    { label: "Inactivo", value: 0 },
+]);
 
 // Formulario
 const form = useForm({
@@ -31,6 +35,7 @@ const form = useForm({
     TipoCumplido: props.datos.TipoCumplido,
     TipoLabor: props.datos.TipoLabor,
     Hect: props.datos.Hect,
+    status: props.datos.status,
     CumplidoAplicacion: props.datos.CumplidoAplicacion,
     CumplidoMaquinaria: props.datos.CumplidoMaquinaria,
     CumplidoOrdenServicio: props.datos.CumplidoOrdenServicio,
@@ -52,7 +57,7 @@ function submitUpdate() {
         // Confirmacion
         if (result.isConfirmed) {
             // Exitoso
-            form.put(route("Labor.update", props.datos.slug), form);
+            form.put(route("Labor.update", props.datos.slug));
             // Mensaje Final
             Swal.fire({
                 title: "Alcualizado!",
@@ -78,7 +83,7 @@ function submitDelete() {
         // Confirmacion
         if (result.isConfirmed) {
             // Exitoso
-            form.delete(route("Labor.delete", props.datos.slug), form);
+            form.delete(route("Labor.delete", props.datos.slug));
             // Mensaje Final
             Swal.fire({
                 title: "Eliminado!",
@@ -227,6 +232,12 @@ const search = (event) => {
                                             <small class="text-gray-500">
                                                 Hectárea = 1, Bultos = 0
                                             </small>
+                                        </div>
+                                        <div class="flex flex-col gap-2">
+                                            <label for="status">Estado</label>
+                                            <Select id="status" v-model="form.status" :options="getOptionStatus"
+                                                optionLabel="label" optionValue="value" placeholder="Seleccionar"
+                                                class="w-full" fluid />
                                         </div>
                                         <div>
                                             <div class="flex items-center gap-2">
