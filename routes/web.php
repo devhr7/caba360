@@ -4,12 +4,14 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\Modulos\Cumplidos\CumplidoAplicacion\Api\CumplidoAplicacionController;
 use App\Http\Controllers\Modulos\Cumplidos\CumplidoMaquinaria\Api\CumplidoMaquinariaController;
 use App\Http\Controllers\Modulos\Cumplidos\CumplidoOrdenServicio\Api\ApiCumplidoOrdenServicioController;
+use App\Http\Controllers\Modulos\Mantenimiento\ImportarFacturas\ImportarFacturaController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Sabberworm\CSS\Property\Import;
 
-/** 
+/**
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -26,6 +28,10 @@ Route::get('/', function () {
         return redirect()->intended('dashboard');
     }
     return redirect()->route('login');
+});
+
+Route::get('/phpinfo', function () {
+    phpinfo();
 });
 
 Route::middleware([
@@ -48,3 +54,7 @@ Route::controller(CumplidoAplicacionController::class)->group(function () {
 });
 
 
+// Maquinaria
+Route::controller(ImportarFacturaController::class)->group(function () {
+    Route::get('Mantenimiento/importarfactura', 'index')->name('importarfactura.index');  // Explorar
+});

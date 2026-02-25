@@ -30,6 +30,7 @@ const form = useForm({
     costoHect: props.datos.costoHect,
     TipoCumplido: props.datos.TipoCumplido,
     TipoLabor: props.datos.TipoLabor,
+    Hect: props.datos.Hect,
     CumplidoAplicacion: props.datos.CumplidoAplicacion,
     CumplidoMaquinaria: props.datos.CumplidoMaquinaria,
     CumplidoOrdenServicio: props.datos.CumplidoOrdenServicio,
@@ -111,6 +112,7 @@ const search = (event) => {
 </script>
 
 <template>
+
     <Head title="Labor" />
 
     <AuthenticatedLayout>
@@ -125,7 +127,7 @@ const search = (event) => {
                 <a :href="item.url">
                     <span class="text-surface-700 dark:text-surface-0">{{
                         item.label
-                    }}</span>
+                        }}</span>
                 </a>
             </template>
         </Breadcrumb>
@@ -140,41 +142,22 @@ const search = (event) => {
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="flex flex-col gap-2">
                                         <label for="labor">Labor</label>
-                                        <InputText
-                                            id="labor"
-                                            v-model="form.labor"
-                                            aria-describedby="labor-help"
-                                        />
+                                        <InputText id="labor" v-model="form.labor" aria-describedby="labor-help" />
                                     </div>
                                     <div class="flex flex-col gap-2">
-                                        <label for="costoHect"
-                                            >Costo/Hect</label
-                                        >
-                                        <InputText
-                                            id="costoHect"
-                                            v-model="form.costoHect"
-                                            aria-describedby="costoHect-help"
-                                        />
+                                        <label for="costoHect">Costo/Hect</label>
+                                        <InputText id="costoHect" v-model="form.costoHect"
+                                            aria-describedby="costoHect-help" />
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="flex flex-col gap-2">
                                         <label for="tipolabor">TipoLabor</label>
-                                        <Select
-                                            v-model="form.TipoLabor"
-                                            :options="getOptionTipoLabor"
-                                            filter
-                                            optionLabel="label"
-                                            placeholder="Seleccionar"
-                                            showClear
-                                            class="w-full"
-                                            fluid
-                                        >
+                                        <Select v-model="form.TipoLabor" :options="getOptionTipoLabor" filter
+                                            optionLabel="label" placeholder="Seleccionar" showClear class="w-full"
+                                            fluid>
                                             <template #value="slotProps">
-                                                <div
-                                                    v-if="slotProps.value"
-                                                    class="flex items-center"
-                                                >
+                                                <div v-if="slotProps.value" class="flex items-center">
                                                     <div>
                                                         <!-- Mostrar el nombre de la finca-->
                                                         {{
@@ -202,24 +185,12 @@ const search = (event) => {
                                         </Select>
                                     </div>
                                     <div class="flex flex-col gap-2">
-                                        <label for="tipocumplido"
-                                            >Tipo Cumplido</label
-                                        >
-                                        <Select
-                                            v-model="form.TipoCumplido"
-                                            :options="getOptionTipoCumplido"
-                                            filter
-                                            optionLabel="label"
-                                            placeholder="Seleccionar"
-                                            showClear
-                                            class="w-full"
-                                            fluid
-                                        >
+                                        <label for="tipocumplido">Tipo Cumplido</label>
+                                        <Select v-model="form.TipoCumplido" :options="getOptionTipoCumplido" filter
+                                            optionLabel="label" placeholder="Seleccionar" showClear class="w-full"
+                                            fluid>
                                             <template #value="slotProps">
-                                                <div
-                                                    v-if="slotProps.value"
-                                                    class="flex items-center"
-                                                >
+                                                <div v-if="slotProps.value" class="flex items-center">
                                                     <div>
                                                         <!-- Mostrar el nombre de la finca-->
                                                         {{
@@ -247,70 +218,58 @@ const search = (event) => {
                                         </Select>
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-4 gap-4">
-                                    <div class="">
-                                        <div class="flex items-center gap-2">
-                                            <ToggleSwitch
-                                                v-model="
-                                                    form.CumplidoAplicacion
-                                                "
-                                            />
+                                <Panel header="Configuración de labor" class="mt-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="flex flex-col gap-2">
+                                            <label for="Hect">Unidad de medida</label>
+                                            <ToggleButton id="Hect" v-model="form.Hect" onLabel="Hectárea"
+                                                offLabel="Bultos" class="w-full" />
+                                            <small class="text-gray-500">
+                                                Hectárea = 1, Bultos = 0
+                                            </small>
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <ToggleSwitch v-model="form.CumplidoAplicacion
+                                                    " />
 
-                                            <label for="CumpAplicacion">
-                                                Cumplido Aplicacion
-                                            </label>
-                                        </div>
-                                        <div class="">
-                                            <ToggleSwitch
-                                                v-model="
-                                                    form.CumplidoMaquinaria
-                                                "
-                                            />
-                                            <label for="CumplidoMaquinaria">
-                                                Cumplido Maquinaria
-                                            </label>
-                                        </div>
-                                        <div class="">
-                                            <ToggleSwitch
-                                                v-model="
-                                                    form.CumplidoOrdenServicio
-                                                "
-                                            />
-                                            <label for="CumplidoOrdenServicio">
-                                                Cumplido Orden Servicio
-                                            </label>
-                                        </div>
-                                        <div class="">
-                                            <ToggleSwitch
-                                                v-model="
-                                                    form.CumplidoLaboresCampo
-                                                "
-                                            />
-                                            <label for="CumplidoLaboresCampo">
-                                                Cumplido Labores Campo
-                                            </label>
+                                                <label for="CumpAplicacion">
+                                                    Cumplido Aplicacion
+                                                </label>
+                                            </div>
+                                            <div>
+                                                <ToggleSwitch v-model="form.CumplidoMaquinaria
+                                                    " />
+                                                <label for="CumplidoMaquinaria">
+                                                    Cumplido Maquinaria
+                                                </label>
+                                            </div>
+                                            <div>
+                                                <ToggleSwitch v-model="form.CumplidoOrdenServicio
+                                                    " />
+                                                <label for="CumplidoOrdenServicio">
+                                                    Cumplido Orden Servicio
+                                                </label>
+                                            </div>
+                                            <div>
+                                                <ToggleSwitch v-model="form.CumplidoLaboresCampo
+                                                    " />
+                                                <label for="CumplidoLaboresCampo">
+                                                    Cumplido Labores Campo
+                                                </label>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                </Panel>
                             </template>
                             <!-- Botones Finales-->
                             <template #footer>
                                 <!-- Boton Guardar-->
                                 <div class="flex gap-4 mt-1">
-                                    <Button
-                                        type="submit"
-                                        label="Guardar"
-                                        severity="success"
-                                        class="w-full"
-                                        :disabled="form.processing"
-                                    />
-                                    <Button
-                                        type="button"
-                                        label="Eliminar"
-                                        severity="danger"
-                                        class="w-full"
-                                        @click="submitDelete"
-                                    />
+                                    <Button type="submit" label="Guardar" severity="success" class="w-full"
+                                        :disabled="form.processing" />
+                                    <Button type="button" label="Eliminar" severity="danger" class="w-full"
+                                        @click="submitDelete" />
                                 </div>
                             </template>
                         </Card>

@@ -1,0 +1,15 @@
+services:
+  web:
+    build: .
+    container_name: caba360_web
+    volumes:
+      - .:/var/www/html
+    environment:
+      - VIRTUAL_HOST=caba360.local
+    networks:
+      - web-proxy
+    restart: unless-stopped
+
+networks:
+  web-proxy:
+    external: true

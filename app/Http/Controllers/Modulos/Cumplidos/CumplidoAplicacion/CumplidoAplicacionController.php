@@ -140,7 +140,8 @@ class CumplidoAplicacionController extends Controller
                 ];
             }),
             'get_empleado' => contratista::optionsContratista(),
-            'get_labor' => Labor::optionsLabor([30, 31, 32, 33, 34, 35, 36, 39, 49, 66, 76, 102]),
+            //'get_labor' => Labor::optionsLabor([30, 31, 32, 33, 34, 35, 36, 39, 49, 66, 76, 102]),
+            'get_labor' => Labor::optionsLabor(Labor::where('CumpApliV', 1)->pluck('id')->toArray()),
         ]);
     }
 
@@ -210,10 +211,10 @@ class CumplidoAplicacionController extends Controller
          */
 
 
-        if (in_array($request->labor['id'], [30, 31, 32, 66])) { // Aplicacion Hectareas
+        if (in_array($request->labor['id'], Labor::where('Hect', 1)->pluck('id')->toArray())) { // Aplicacion Hectareas
             $cantidadTotal = doubleval($request->Hectareas);
             $precioTotal = doubleval($request->labor['CostoHect']) *  doubleval($request->Hectareas);
-        } elseif (in_array($request->labor['id'], [33, 34, 35, 36, 39, 49, 76, 102])) { // Fertilizacion Bultos
+        } elseif (in_array($request->labor['id'], Labor::where('Hect', 0)->pluck('id')->toArray())) { // Fertilizacion Bultos
             $cantidadTotal = CumplidoAplicacionProducto::where('CumplidoAplicacion_id', $CumplidoAplicacion->id)
                 ->whereNotNull('producto_id')
                 ->sum('cantidad_Total');
@@ -249,12 +250,12 @@ class CumplidoAplicacionController extends Controller
         /**
          * *Aplicacion
          */
-        if (in_array($CumplidoAplicacionDetalle->labor_id, [30, 31, 32, 66])) { // Aplicacion
+        if (in_array($CumplidoAplicacionDetalle->labor_id, Labor::where('Hect', 1)->pluck('id')->toArray())) { // Aplicacion
             $cantidadTotal = doubleval($Hectareas); // Las Cantidades de la Aplicacion es igual a las Hectareas
             /**
              * *Fertilizacion
              */
-        } elseif (in_array($CumplidoAplicacionDetalle->labor_id, [33, 34, 35, 36, 39, 49, 76, 102])) { // Fertilizacion
+        } elseif (in_array($CumplidoAplicacionDetalle->labor_id, Labor::where('Hect', 0)->pluck('id')->toArray())) { // Fertilizacion
             $cantidadTotal = CumplidoAplicacionProducto::where('CumplidoAplicacion_id', $CumplidoAplicacion_id)
                 ->whereNotNull('producto_id')
                 ->sum('cantidad_Total');
@@ -286,24 +287,22 @@ class CumplidoAplicacionController extends Controller
             // Consulta
             $CumplidoAplicacion = CumplidoAplicacion::where('slug', $slug)->firstOrFail();
             $CumplidoAplicacionLabor = null;
+            $optionGrupo_MateriaPrima =  Grupo_MateriaPrima::optionsGrupoMateriaPrima(null, [2, 3, 4, 5, 6, 7]);
+            $optionMP = MateriaPrima::optionsMateriaPrima([2, 3, 4, 5, 6, 7]);
 
 
             if ($CumplidoAplicacionLabor = CumplidoAplicacionProducto::where('CumplidoAplicacion_id', $CumplidoAplicacion->id)->whereNotNull('labor_id')->first()) {
 
 
 
-                if (in_array($CumplidoAplicacionLabor->labor_id, [30, 31, 32, 66, 102])) {
+                if (in_array($CumplidoAplicacionLabor->labor_id, Labor::where('Hect', 1)->pluck('id')->toArray())) {
                     $optionGrupo_MateriaPrima =  Grupo_MateriaPrima::optionsGrupoMateriaPrima(null, [2, 3, 4, 5, 6, 7]);
                     $optionMP = MateriaPrima::optionsMateriaPrima([2, 3, 4, 5, 6, 7]);
                 }
-                if (in_array($CumplidoAplicacionLabor->labor_id, [33, 34, 35, 36, 39, 49, 76])) {
+                if (in_array($CumplidoAplicacionLabor->labor_id, Labor::where('Hect', 0)->pluck('id')->toArray())) {
                     $optionGrupo_MateriaPrima =  Grupo_MateriaPrima::optionsGrupoMateriaPrima(null, [1, 7]);
                     $optionMP = MateriaPrima::optionsMateriaPrima([1, 7]);
                 }
-            } else {
-                $CumplidoAplicacionLabor = null;
-                $optionGrupo_MateriaPrima =  Grupo_MateriaPrima::optionsGrupoMateriaPrima(null, [2, 3, 4, 5, 6, 7]);
-                $optionMP = MateriaPrima::optionsMateriaPrima([2, 3, 4, 5, 6, 7]);
             }
 
 
@@ -335,7 +334,7 @@ class CumplidoAplicacionController extends Controller
                     'Observaciones' => $CumplidoAplicacion->Observaciones,
                     'Coordinador_id' => Empleados::optionsEmpleadoPorCargo(null, $CumplidoAplicacion->Coordinador_id),
                     'JefeCampo_id' => Empleados::optionsEmpleadoPorCargo(null, $CumplidoAplicacion->JefeCampo_id),
-                    'get_labor' => Labor::optionsLabor(null, null, $CumplidoAplicacionLabor->labor_id),
+                    'get_labor' => Labor::optionsLabor(null, null, $CumplidoAplicacionLabor?->labor_id),
 
                 ],
                 'DataTableProductoCumplidoAplicacion' => CumplidoAplicacionProducto::with([
@@ -383,7 +382,7 @@ class CumplidoAplicacionController extends Controller
                     'get_empleados' => contratista::optionsContratista(),
                     'get_GrupoMPrima' => $optionGrupo_MateriaPrima,
                     'get_MPrima' => $optionMP,
-                    'get_labor' => Labor::optionsLabor([30, 31, 32, 33, 34, 35, 36, 39, 49, 66, 76, 102],),
+                    'get_labor' => Labor::optionsLabor(Labor::where('CumpApliV', 1)->pluck('id')->toArray()),
                     'get_labor_mezcla_abono' => Labor::optionsLabor([36]),
                 ],
 
@@ -434,7 +433,7 @@ class CumplidoAplicacionController extends Controller
         // Actualizar Labor
         CumplidoAplicacionProducto::where('CumplidoAplicacion_id', $CumplidoAplicacionModel->id)->whereNotNull('labor_id')->firstOrFail()->delete();
 
-        if (in_array($request->labor['id'], [30, 31, 32, 102])) { // Aplicacion
+        if (in_array($request->labor['id'], Labor::where('Hect', 1)->pluck('id')->toArray())) { // Aplicacion
             $costoxHect = $request->labor['CostoHect'];
             $cantidadTotal = doubleval($CumplidoAplicacionModel->HectLote);
             $precioTotal = doubleval($request->labor['CostoHect']) *  doubleval($CumplidoAplicacionModel->HectLote);
@@ -449,7 +448,7 @@ class CumplidoAplicacionController extends Controller
                 'GrupoMateriaPrima_id' => null,
                 'MateriaPrima' => null,
             ]);
-        } elseif (in_array($request->labor['id'], [33, 34, 35, 36, 39])) { // Fertilizacion
+        } elseif (in_array($request->labor['id'], Labor::where('Hect', 0)->pluck('id')->toArray())) { // Fertilizacion
             $cantidadTotal = CumplidoAplicacionProducto::where('CumplidoAplicacion_id', $CumplidoAplicacionModel->id)
                 ->whereNotNull('producto_id')
                 ->sum('cantidad_Total');
@@ -534,8 +533,8 @@ class CumplidoAplicacionController extends Controller
                     'Aplicacion' => $cumplidoAplicacion->labor->labor,
                     'PrecioUnit' => $cumplidoAplicacion->PrecioUnit,
                     'cantidad' => $cumplidoAplicacion->cantidad_Total,
-                    'bultos' =>  in_array($cumplidoAplicacion->labor->id, [33, 34, 35, 36, 39, 49, 76, 102]) ? $cumplidoAplicacion->cantidad_Total : 0,
-                    'HectareasAplicacion' => in_array($cumplidoAplicacion->labor->id, [30, 31, 32, 66]) ? $cumplidoAplicacion->cantidad_Total : 0,
+                    'bultos' =>  in_array($cumplidoAplicacion->labor->id, Labor::where('Hect', 0)->pluck('id')->toArray()) ? $cumplidoAplicacion->cantidad_Total : 0,
+                    'HectareasAplicacion' => in_array($cumplidoAplicacion->labor->id, Labor::where('Hect', 1)->pluck('id')->toArray()) ? $cumplidoAplicacion->cantidad_Total : 0,
                     'Total' => $cumplidoAplicacion->PrecioTotal,
                     'observaciones' => $cumplidoAplicacion->CumlidoAplicacion->Observaciones,
                     'factura' => $cumplidoAplicacion->CumlidoAplicacion->factura,
@@ -838,8 +837,8 @@ class CumplidoAplicacionController extends Controller
                 'labor' => $item->labor->labor,
                 'labor_id' => $item->labor->id,
                 'cantidad_total' => $item->cantidad_Total,
-                'Cantidad_Hect' => in_array($item->labor->id, [30, 31, 32, 66]) ? $item->cantidad_Total : 0,
-                'Cantidad_Bultos' => in_array($item->labor->id, [33, 34, 35, 36, 39, 102]) ? $item->cantidad_Total : 0,
+                'Cantidad_Hect' => in_array($item->labor->id, Labor::where('Hect', 1)->pluck('id')->toArray()) ? $item->cantidad_Total : 0,
+                'Cantidad_Bultos' => in_array($item->labor->id, Labor::where('Hect', 0)->pluck('id')->toArray()) ? $item->cantidad_Total : 0,
                 'precio_total' => $item->PrecioTotal,
             ];
         });

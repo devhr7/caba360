@@ -25,6 +25,7 @@ class Labor extends Model
         'CumpMaqV',
         'CumpApliV',
         'CumpOrdV',
+        'Hect'
     ];
 
     // Slug

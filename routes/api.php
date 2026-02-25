@@ -18,7 +18,7 @@ Route::get('/user', function (Request $request) {
 Route::prefix('api')->group(function () {
     Route::controller(CumplidoAplicacionController::class)->group(function () {
         Route::get('CumplidoAplicacion/getAllCumplidosAplicacion', 'getAllCumplidosAplicacion')->name('api.cumplidoaplicacion.getAllCumplidosAplicacion')->middleware('auth:sanctum');  // Explorar
-        Route::get('CumplidoAplicacion/getAllCumplidosAplicacionDetalle', 'getAllCumplidosAplicacionDetalle')->name('api.cumplidoaplicacion.getAllCumplidosAplicacionDetalle')->middleware('auth:sanctum');  // Explorar
+        Route::get('CumplidoAplicacion/getAllCumplidosAplicacionDetalle', 'getAllCumplidosAplicacionDetalle')->name('api.cumplidoaplicacion.getAllCumplidosAplicacionDetalle');  // Explorar
     });
 
     Route::controller(CumplidoMaquinariaController::class)->group(function () {

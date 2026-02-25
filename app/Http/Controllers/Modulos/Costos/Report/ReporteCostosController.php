@@ -263,7 +263,7 @@ class ReporteCostosController extends Controller
                     'cantidad' => $item->cant,
                     'valor_unit' => number_format($item->valor_total / $item->cant, 0, ',', '.'),
                     'valor_total' => number_format($item->valor_total, 0, ',', '.'),
-                    'obs' => $item->observaciones ,
+                    'obs' => $item->observaciones,
                 ];
             });
 
@@ -310,14 +310,14 @@ class ReporteCostosController extends Controller
                 ];
             });
 
-            //  Record de visitas
+        //  Record de visitas
 
-            $recordvisita = ProductoRecordVisitas::with('RecordVisita')->select('RecordVisita_id', 'producto_id', 'Dosis_por_Ha', 'cantidad_Total', 'fecha_estimada_aplicacion')
+        $recordvisita = ProductoRecordVisitas::with('RecordVisita')->select('RecordVisita_id', 'producto_id', 'Dosis_por_Ha', 'cantidad_Total', 'fecha_estimada_aplicacion')
             ->whereHas('RecordVisita', function ($query) use ($id_regLote) {
                 $query->where('RegLote_id', $id_regLote);
             })
             ->get()
-            ->map(function($item){
+            ->map(function ($item) {
                 return [
                     'fecha' => \Carbon\Carbon::parse($item->RecordVisita->fecha)->format('Y-m-d'),
                     'tipo' => "Record Agronomo",
@@ -327,25 +327,25 @@ class ReporteCostosController extends Controller
                     'cantidad' => $item->cantidad_Total,
                     'valor_unit' => number_format($item->PrecioUnit, 0, ',', '.'),
                     'valor_total' => number_format($item->PrecioTotal, 0, ',', '.'),
-                    'obs' =>  $item->RecordVisita->diagnostico ." ; ". $item->RecordVisita->observaciones,
+                    'obs' =>  $item->RecordVisita->diagnostico . " ; " . $item->RecordVisita->observaciones,
                 ];
             });
 
         $cump_laborcampo_id = cumplido_laborcampodetallelote::where('reg_lote_id', $id_regLote)->select('cump_laborcampo_id')->get();
 
-            $cumplidoLaborCampo = CumplidoLaboresCampo::with('labor', 'producto')->whereIn('id', $cump_laborcampo_id)->get()->map( function ($item){
-                return [
-                    'fecha' => \Carbon\Carbon::parse($item->fecha)->format('Y-m-d'),
-                    'tipo' => "Labor Campo",
-                    'codigo' => $item->codigo,
-                    'labor' => $item->labor->labor,
-                    'producto' => $item->producto ? $item->producto->MateriaPrima : null,
-                    'cantidad' => $item->cantidadtotal,
-                    'valor_unit' => number_format($item->PrecioUnit, 0, ',', '.'),
-                    'valor_total' => number_format($item->PrecioTotal, 0, ',', '.'),
-                    'obs' => $item->observaciones,
-                ];
-            });
+        $cumplidoLaborCampo = CumplidoLaboresCampo::with('labor', 'producto')->whereIn('id', $cump_laborcampo_id)->get()->map(function ($item) {
+            return [
+                'fecha' => \Carbon\Carbon::parse($item->fecha)->format('Y-m-d'),
+                'tipo' => "Labor Campo",
+                'codigo' => $item->codigo,
+                'labor' => $item->labor->labor,
+                'producto' => $item->producto ? $item->producto->MateriaPrima : null,
+                'cantidad' => $item->cantidadtotal,
+                'valor_unit' => number_format($item->PrecioUnit, 0, ',', '.'),
+                'valor_total' => number_format($item->PrecioTotal, 0, ',', '.'),
+                'obs' => $item->observaciones,
+            ];
+        });
 
         // Combinar y ordenar resultados
         $cumplidos = $cumplidosAplicacionProducto->merge($cumplidosMaquinaria)
@@ -363,90 +363,161 @@ class ReporteCostosController extends Controller
 
     public function getCumplidosapi()
     {
+        $debugId = uniqid('getCumplidosapi_', true);
+        $limit = (int) request()->query('limit', 1000);
+        $limit = max(1, min($limit, 5000));
+        $fechaInicio = Carbon::now()->startOfMonth()->subMonths(2)->startOfDay();
+        $fechaFin = Carbon::today()->endOfDay();
 
-        $cumplidosAplicacionProducto = CumplidoAplicacionProducto::with('CumlidoAplicacion')->select('CumplidoAplicacion_id', 'producto_id', 'labor_id', 'cantidad_Total', 'PrecioTotal', 'PrecioUnit')
-            ->whereHas('CumlidoAplicacion', function ($query) {
-                $query->whereNotNull('labor_id');
-            })
-            ->get()
-            ->map(function ($item) {
-                return [
-                    //'fecha' => $item->CumlidoAplicacion->fecha,
-                    'fecha' => \Carbon\Carbon::parse($item->CumlidoAplicacion->fecha)->format('d/m/Y'),
-                    'tipo' => "Cumplido de Aplicacion",
-                    'codigo' => $item->CumlidoAplicacion->codigo,
-                    'Distrito' => $item->CumlidoAplicacion->reg_lote->finca->distrito->distrito,
-                    'Zona' => $item->CumlidoAplicacion->reg_lote->finca->zona->zona,
-                    'Finca' => $item->CumlidoAplicacion->reg_lote->Finca->finca,
-                    'Lote' => $item->CumlidoAplicacion->reg_lote->Lote->lote,
-                    'CodigoLote' => $item->CumlidoAplicacion->reg_lote->Codigo,
-                    'HectLote' => $item->CumlidoAplicacion->reg_lote->Hect,
-                    'contratista_nombre' => $item->CumlidoAplicacion->ResponsableAplicacion->nombre,
-                    'contratista_identificacion' => $item->CumlidoAplicacion->ResponsableAplicacion->identificacion,
-                    'salida_almacen' => $item->CumlidoAplicacion->CodSalidaAlmacen,
-                    'labor' => $item->labor ? $item->labor->labor : null,
+        try {
+            logger()->info('Inicio getCumplidosapi', [
+                'debug_id' => $debugId,
+                'limit' => $limit,
+                'fecha_inicio' => $fechaInicio->toDateTimeString(),
+                'fecha_fin' => $fechaFin->toDateTimeString(),
+                'url' => request()->fullUrl(),
+                'user_id' => optional(request()->user())->id,
+            ]);
 
-                    'cantidad' => $item->cantidad_Total,
-                    'valor_unit' => number_format($item->PrecioUnit, 2, ',', '.'),
-                    'valor_total' => number_format($item->PrecioTotal, 2, ',', '.'),
-                    'observaciones' => $item->CumlidoAplicacion->Observaciones,
-                    'factura' => $item->CumlidoAplicacion->factura,
-                    'fecha_cierre' => $item->CumlidoAplicacion->fecha_cierre,
-                ];
-            });
+            $cumplidosAplicacionProducto = CumplidoAplicacionProducto::with('CumlidoAplicacion')->select('CumplidoAplicacion_id', 'producto_id', 'labor_id', 'cantidad_Total', 'PrecioTotal', 'PrecioUnit')
+                ->whereHas('CumlidoAplicacion', function ($query) use ($fechaInicio, $fechaFin) {
+                    $query->whereNotNull('labor_id')
+                        ->whereBetween('fecha', [$fechaInicio, $fechaFin]);
+                })
+                ->orderByDesc('id')
+                ->limit($limit)
+                ->get()
+                ->map(function ($item) use ($debugId) {
+                    try {
+                        $fecha = Carbon::parse($item->CumlidoAplicacion->fecha);
 
+                        return [
+                            //'fecha' => $item->CumlidoAplicacion->fecha,
+                            '_fecha_orden' => $fecha->timestamp,
+                            'fecha' => $fecha->format('d/m/Y'),
+                            'tipo' => "Cumplido de Aplicacion",
+                            'codigo' => $item->CumlidoAplicacion->codigo,
+                            'Distrito' => $item->CumlidoAplicacion->reg_lote->finca->distrito->distrito,
+                            'Zona' => $item->CumlidoAplicacion->reg_lote->finca->zona->zona,
+                            'Finca' => $item->CumlidoAplicacion->reg_lote->Finca->finca,
+                            'Lote' => $item->CumlidoAplicacion->reg_lote->Lote->lote,
+                            'CodigoLote' => $item->CumlidoAplicacion->reg_lote->Codigo,
+                            'HectLote' => $item->CumlidoAplicacion->reg_lote->Hect,
+                            'contratista_nombre' => $item->CumlidoAplicacion->ResponsableAplicacion->nombre,
+                            'contratista_identificacion' => $item->CumlidoAplicacion->ResponsableAplicacion->identificacion,
+                            'salida_almacen' => $item->CumlidoAplicacion->CodSalidaAlmacen,
+                            'labor' => $item->labor ? $item->labor->labor : null,
 
-        // Consulta para Cumplidos de Orden de Servicio
-        $cumplidosOrdenServicio = CumplidoOrdenServicioDetalle::with('CumplidoOrdenServicio', 'ClasificacionCentroCosto', 'UnidadMedida')->select('CumplidoOrdenServicio_id', 'TipoCentroCosto_id', 'UnidadMedida_id', 'Interno', 'DestinoServicio', 'finca_id', 'RegLote_id', 'Lote_id', 'Labor_id', 'Cantidad', 'DetalleLabor', 'ValorUnit', 'Total')
-            ->get()
-            ->map(function ($item) {
-                return [
+                            'cantidad' => $item->cantidad_Total,
+                            'valor_unit' => number_format($item->PrecioUnit, 2, ',', '.'),
+                            'valor_total' => number_format($item->PrecioTotal, 2, ',', '.'),
+                            'observaciones' => $item->CumlidoAplicacion->Observaciones,
+                            'factura' => $item->CumlidoAplicacion->factura,
+                            'fecha_cierre' => $item->CumlidoAplicacion->fecha_cierre,
+                        ];
+                    } catch (\Throwable $e) {
+                        logger()->error('Error mapeando CumplidoAplicacionProducto en getCumplidosapi', [
+                            'debug_id' => $debugId,
+                            'cumplido_aplicacion_producto_id' => $item->id ?? null,
+                            'cumplido_aplicacion_id' => $item->CumplidoAplicacion_id ?? null,
+                            'message' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString(),
+                        ]);
 
-                    'fecha' => Carbon::parse($item->cumplidoordenservicio->fecha)->format('d/m/Y'),
-
-                    'tipo' => "Orden de Servicio",
-                    'codigo' => $item->cumplidoordenservicio->codigo,
-
-                    'CentroCosto' => $item->TipoCentroCosto_id ? $item->ClasificacionCentroCosto->ClaseCentroCosto : null,
-                    'destino' => $item->DestinoServicio,
-                    'Distrito' => $item->finca_id ?  $item->Finca->Distrito->distrito : null,
-                    'Zona' => $item->finca_id ? ($item->Finca->zona_id ? $item->Finca->zona->zona : null) : null,
-                    'Finca' => $item->finca_id ?  $item->Finca->finca : null,
-                    'Lote' => $item->Lote_id ?  $item->Lote->lote : null,
-                    'CodigoLote' => $item->RegLote_id ?  $item->RegLote->Codigo : null,
-                    'HectLote' => $item->RegLote_id ?  $item->RegLote->Hect : null,
-
-                    'contratista_nombre' => $item->CumplidoOrdenServicio->contratista->nombre,
-                    'contratista_identificacion' => $item->CumplidoOrdenServicio->contratista->identificacion,
-                    'salida_almacen' => $item->CumplidoOrdenServicio->CodSalidaAlmacen,
-
-                    'labor' => $item->Labor_id ? $item->Labor->labor . ". " . $item->DetalleLabor : $item->DetalleLabor,
-                    'potrero' => $item->potrero_id ? $item->potrero->potrero : null,
-                    'cantidad' => $item->Cantidad,
-                    'unidad_medida' => $item->UnidadMedida->UnidadMedida,
-                    'valor_unit' => $item->ValorUnit,
-                    'valor_total' => $item->Total,
-                    'observaciones' => $item->cumplidoordenservicio->Observaciones,
-                    'factura' => $item->cumplidoordenservicio->factura,
-                    'fecha_cierre' => !is_null($item->cumplidoordenservicio->factura) ? (is_null($item->cumplidoordenservicio->fecha_cierre) ? null : \Carbon\Carbon::parse($item->cumplidoordenservicio->fecha_cierre)->format('d-m-Y')) : null,
+                        throw $e;
+                    }
+                });
 
 
+            // Consulta para Cumplidos de Orden de Servicio
+            $cumplidosOrdenServicio = CumplidoOrdenServicioDetalle::with('CumplidoOrdenServicio', 'ClasificacionCentroCosto', 'UnidadMedida')->select('CumplidoOrdenServicio_id', 'TipoCentroCosto_id', 'UnidadMedida_id', 'Interno', 'DestinoServicio', 'finca_id', 'RegLote_id', 'Lote_id', 'Labor_id', 'Cantidad', 'DetalleLabor', 'ValorUnit', 'Total')
+                ->whereHas('CumplidoOrdenServicio', function ($query) use ($fechaInicio, $fechaFin) {
+                    $query->whereBetween('fecha', [$fechaInicio, $fechaFin]);
+                })
+                ->orderByDesc('id')
+                ->limit($limit)
+                ->get()
+                ->map(function ($item) use ($debugId) {
+                    try {
+                        $fecha = Carbon::parse($item->cumplidoordenservicio->fecha);
+
+                        return [
+                            '_fecha_orden' => $fecha->timestamp,
+                            'fecha' => $fecha->format('d/m/Y'),
+
+                            'tipo' => "Orden de Servicio",
+                            'codigo' => $item->cumplidoordenservicio->codigo,
+
+                            'CentroCosto' => $item->TipoCentroCosto_id ? $item->ClasificacionCentroCosto->ClaseCentroCosto : null,
+                            'destino' => $item->DestinoServicio,
+                            'Distrito' => $item->finca_id ?  $item->Finca->Distrito->distrito : null,
+                            'Zona' => $item->finca_id ? ($item->Finca->zona_id ? $item->Finca->zona->zona : null) : null,
+                            'Finca' => $item->finca_id ?  $item->Finca->finca : null,
+                            'Lote' => $item->Lote_id ?  $item->Lote->lote : null,
+                            'CodigoLote' => $item->RegLote_id ?  $item->RegLote->Codigo : null,
+                            'HectLote' => $item->RegLote_id ?  $item->RegLote->Hect : null,
+
+                            'contratista_nombre' => $item->CumplidoOrdenServicio->contratista->nombre,
+                            'contratista_identificacion' => $item->CumplidoOrdenServicio->contratista->identificacion,
+                            'salida_almacen' => $item->CumplidoOrdenServicio->CodSalidaAlmacen,
+
+                            'labor' => $item->Labor_id ? $item->Labor->labor . ". " . $item->DetalleLabor : $item->DetalleLabor,
+                            'potrero' => $item->potrero_id ? $item->potrero->potrero : null,
+                            'cantidad' => $item->Cantidad,
+                            'unidad_medida' => $item->UnidadMedida->UnidadMedida,
+                            'valor_unit' => $item->ValorUnit,
+                            'valor_total' => $item->Total,
+                            'observaciones' => $item->cumplidoordenservicio->Observaciones,
+                            'factura' => $item->cumplidoordenservicio->factura,
+                            'fecha_cierre' => !is_null($item->cumplidoordenservicio->factura) ? (is_null($item->cumplidoordenservicio->fecha_cierre) ? null : \Carbon\Carbon::parse($item->cumplidoordenservicio->fecha_cierre)->format('d-m-Y')) : null,
+                        ];
+                    } catch (\Throwable $e) {
+                        logger()->error('Error mapeando CumplidoOrdenServicioDetalle en getCumplidosapi', [
+                            'debug_id' => $debugId,
+                            'cumplido_orden_servicio_detalle_id' => $item->id ?? null,
+                            'cumplido_orden_servicio_id' => $item->CumplidoOrdenServicio_id ?? null,
+                            'message' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString(),
+                        ]);
+
+                        throw $e;
+                    }
+                });
 
 
+            // Combinar y ordenar resultados
+            $cumplidos = $cumplidosAplicacionProducto->merge($cumplidosOrdenServicio)
+                ->sortByDesc('_fecha_orden')
+                ->map(function ($item) {
+                    unset($item['_fecha_orden']);
+                    return $item;
+                })
+                ->values(); // Resetea los índices de la colección
 
-                ];
-            });
+            logger()->info('Fin getCumplidosapi', [
+                'debug_id' => $debugId,
+                'total_aplicacion' => $cumplidosAplicacionProducto->count(),
+                'total_orden_servicio' => $cumplidosOrdenServicio->count(),
+                'total_respuesta' => $cumplidos->count(),
+            ]);
 
+            return $cumplidos;
+        } catch (\Throwable $e) {
+            logger()->error('Error general en getCumplidosapi', [
+                'debug_id' => $debugId,
+                'url' => request()->fullUrl(),
+                'user_id' => optional(request()->user())->id,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
-        // Combinar y ordenar resultados
-        $cumplidos = $cumplidosAplicacionProducto->merge($cumplidosOrdenServicio)
-            ->sortByDesc('fecha')
-            ->values(); // Resetea los índices de la colección
-
-        // Formatear los datos en un solo JSON
-
-
-        return $cumplidos->sortByDesc('fecha');
+            return response()->json([
+                'ok' => false,
+                'message' => 'Error interno al consultar cumplidos.',
+                'debug_id' => $debugId,
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
     }
 
     public function getConsolidadoVentas($id_regLote)

@@ -120,7 +120,7 @@ class CumplidoAplicacionProductoController extends Controller
         }
         $CumplidoAplicacionProductos =  CumplidoAplicacionProducto::where('id', $CumplidoAplicacionProducto)->firstOrFail();
         $CumplidoAplicacion = $CumplidoAplicacionProductos->CumplidoAplicacion_id;
-        if (!in_array($CumplidoAplicacionProductos->labor_id, [30, 31, 32, 33, 34, 35, 36, 39, 49,66,76,102])) {
+        if (!in_array($CumplidoAplicacionProductos->labor_id, Labor::where('CumpApliV', 1)->pluck('id')->toArray())) {
             $CumplidoAplicacionProductos->delete();
             $this->ActualizarValorLabor($CumplidoAplicacion);
         } else {
@@ -142,7 +142,7 @@ class CumplidoAplicacionProductoController extends Controller
 
                 return "Es una fertilizacion";
             } else {
-                
+
                 return "Es una Aplicacion";
             }
         }
@@ -157,25 +157,25 @@ class CumplidoAplicacionProductoController extends Controller
         $PrecioUnit = Labor::where('id', $CumplidoAplicacionDetalle->labor_id)->firstOrFail()->CostoHect;
 
 
-        /** 
-         * *Aplicacion 
+        /**
+         * *Aplicacion
          */
-        if (in_array($CumplidoAplicacionDetalle->labor_id, [30, 31, 32,66,102])) { // Aplicacion
+        if (in_array($CumplidoAplicacionDetalle->labor_id, Labor::where('Hect', 1)->pluck('id')->toArray())) { // Aplicacion
                 $cantidadTotal = doubleval($Hectareas); // Las Cantidades de la Aplicacion es igual a las Hectareas
 
-          
+
             //Fin Condicion
 
-            /** 
-             * *Fertilizacion 
+            /**
+             * *Fertilizacion
              */
-        } elseif (in_array($CumplidoAplicacionDetalle->labor_id, [33, 34, 35, 36, 39, 49, 76])) { // Fertilizacion
+        } elseif (in_array($CumplidoAplicacionDetalle->labor_id, Labor::where('Hect', 0)->pluck('id')->toArray())) { // Fertilizacion
             $cantidadTotal = CumplidoAplicacionProducto::where('CumplidoAplicacion_id', $CumplidoAplicacion_id)
                 ->whereNotNull('producto_id')
                 ->sum('cantidad_Total');
         }
 
-        // Guarda y Actualiza la Labor. 
+        // Guarda y Actualiza la Labor.
         $CumplidoAplicacionDetalle->cantidad_Total = $cantidadTotal;
         $CumplidoAplicacionDetalle->PrecioUnit = $PrecioUnit;
         $CumplidoAplicacionDetalle->PrecioTotal = $cantidadTotal * $PrecioUnit;

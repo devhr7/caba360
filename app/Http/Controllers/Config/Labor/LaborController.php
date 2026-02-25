@@ -71,6 +71,7 @@ class LaborController extends Controller
         $labor->CumpMaqV = $request->CumplidoMaquinaria;
         $labor->CumpApliV = $request->CumplidoAplicacion;
         $labor->CumpOrdV = $request->CumplidoOrdenServicio;
+        $labor->Hect = $request->boolean('Hect');
         //$labor->CumpLabV = $request->CumplidoLaboresCampo;
 
         // Save the Labor model to the database
@@ -106,6 +107,7 @@ class LaborController extends Controller
                 'CumplidoAplicacion' => $labor->CumpApliV == 1 ? true : false,
                 'CumplidoOrdenServicio' => $labor->CumpOrdV == 1 ? true : false,
                 'CumplidoLaboresCampo' => false,
+                'Hect' => $labor->Hect == 1 ? true : false,
 
 
                 'slug' => $labor->slug,
@@ -136,6 +138,7 @@ class LaborController extends Controller
         $labor->CumpMaqV = $request->CumplidoMaquinaria;
         $labor->CumpApliV = $request->CumplidoAplicacion;
         $labor->CumpOrdV = $request->CumplidoOrdenServicio;
+        $labor->Hect = $request->boolean('Hect');
 
         // Save the updated Labor model to the database
         $labor->save();
